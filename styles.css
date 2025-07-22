@@ -1,0 +1,21 @@
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.option-card {
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.option-card:hover {
+    transform: translateY(-5px);
+}
+
+.correct {
+    background-color: #28a745 !important; /* Green */
+    color: white;
+}
+
+.incorrect {
+    background-color: #dc3545 !important; /* Red */
+    color: white;
+}
