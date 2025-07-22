@@ -28,10 +28,20 @@ const incorrectSound = new Tone.Synth({
     envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 }
 }).toDestination();
 
+// --- Utility Functions ---
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
 // --- Game Functions ---
 function startGame() {
-    // Shuffle questions
-    shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
+    // Shuffle questions using Fisher-Yates algorithm for better randomization
+    shuffledQuestions = shuffleArray(questions);
     currentQuestionIndex = 0;
     score = 0;
     answered = false;
@@ -49,9 +59,23 @@ function loadQuestion() {
     questionText.textContent = currentQuestion.question;
     optionsContainer.innerHTML = '';
 
-    currentQuestion.options.forEach((option, index) => {
+    // Shuffle the options while keeping track of the correct answer
+    const shuffledOptions = shuffleArray(currentQuestion.options.map((option, index) => ({
+        text: option,
+        originalIndex: index
+    })));
+    
+    // Find the new index of the correct answer after shuffling
+    const newCorrectIndex = shuffledOptions.findIndex(option => 
+        option.originalIndex === currentQuestion.answer
+    );
+    
+    // Update the correct answer index for this shuffled question
+    shuffledQuestions[currentQuestionIndex].shuffledAnswer = newCorrectIndex;
+
+    shuffledOptions.forEach((option, index) => {
         const button = document.createElement('button');
-        button.textContent = option;
+        button.textContent = option.text;
         button.classList.add('option-card', 'w-full', 'p-4', 'border', 'border-gray-300', 'rounded-lg', 'text-left', 'bg-white', 'hover:bg-gray-50');
         button.dataset.index = index;
         button.addEventListener('click', selectAnswer);
@@ -71,7 +95,7 @@ function selectAnswer(e) {
 
     const selectedOption = e.target;
     const selectedAnswerIndex = parseInt(selectedOption.dataset.index);
-    const correctAnswerIndex = shuffledQuestions[currentQuestionIndex].answer;
+    const correctAnswerIndex = shuffledQuestions[currentQuestionIndex].shuffledAnswer;
 
     const options = optionsContainer.children;
 
