@@ -331,6 +331,46 @@
                 answer: 3
             }
         ];
+        const numberOfQuestionsToSelect = 25;
+const bestScoreKey = 'quizBestScore';
+        // Function to get the current best score from local storage
+function getBestScore() {
+  const storedScore = localStorage.getItem(bestScoreKey);
+  return storedScore ? parseInt(storedScore) : 0;
+}
+
+// Function to save the current score as the new best score if it's higher
+function saveBestScore(currentScore) {
+  const bestScore = getBestScore();
+  if (currentScore > bestScore) {
+    localStorage.setItem(bestScoreKey, currentScore);
+    console.log(`New best score: ${currentScore}`);
+  } else {
+    console.log(`Your score: ${currentScore}. Best score is still: ${bestScore}`);
+  }
+}
+
+// Function to select a random sample of questions without repetition
+function selectRandomQuestions(questions, count) {
+  const shuffledQuestions = [...questions].sort(() => 0.5 - Math.random()); // Shuffle the array
+  return shuffledQuestions.slice(0, count); // Take the first 'count' elements
+}
+
+// Example usage:
+
+// At the beginning of your quiz, select the questions
+const selectedQuestions = selectRandomQuestions(allQuestions, numberOfQuestionsToSelect);
+console.log("Selected Questions:", selectedQuestions);
+
+// After the quiz is finished, get the user's final score (replace with your actual score)
+const userFinalScore = 28;
+
+// Save the score
+saveBestScore(userFinalScore);
+
+// You can also retrieve the best score at any time
+const currentBestScore = getBestScore();
+console.log("Current Best Score:", currentBestScore);
      // --- DOM Elements ---
 const gameContainer = document.getElementById('game-container');
 const questionText = document.getElementById('question-text');
