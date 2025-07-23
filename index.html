@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memo Game - CESAG (Expanded)</title>
+    <title>Memo Game - Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -29,10 +29,32 @@
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
 
-    <div id="game-container" class="w-full max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-2xl">
-        <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-2">CESAG - Memo Game</h1>
-        <p class="text-center text-gray-500 mb-6">Test your knowledge with questions from the exam and recent events.</p>
+    <!-- Login Screen -->
+    <div id="login-screen" class="w-full max-w-md mx-auto bg-white p-8 rounded-2xl shadow-2xl text-center">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Welcome to CESAG-the Memo Game!</h1>
+        <p class="text-gray-600 mb-6">Enter your name to play and get on the leaderboard!</p>
+        <div class="space-y-4">
+            <input type="text" id="username-input" placeholder="Enter your name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <button id="login-btn" class="w-full bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors duration-300">Start Quiz</button>
+        </div>
+        <div id="leaderboard" class="mt-8">
+            <h2 class="text-xl font-bold text-gray-700 mb-4">🏆 Top 10 Players</h2>
+            <ol id="leaderboard-list" class="text-left space-y-2">
+                <!-- Leaderboard will be populated here -->
+            </ol>
+        </div>
+    </div>
 
+    <!-- Game Container -->
+    <div id="game-container" class="w-full max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-2xl hidden">
+        <div class="flex justify-between items-start mb-4">
+             <h1 class="text-2xl md:text-3xl font-bold text-gray-800">CESAG  - Memo Game</h1>
+             <div id="user-info" class="text-right">
+                <p class="font-semibold text-gray-700" id="welcome-user"></p>
+                <button id="logout-btn" class="text-sm text-indigo-600 hover:underline">Logout</button>
+             </div>
+        </div>
+       
         <div id="question-area" class="mb-6">
             <div class="flex justify-between items-center mb-4">
                 <div id="progress-text" class="text-sm font-medium text-gray-600">Question 1 / 25</div>
@@ -53,104 +75,76 @@
         </div>
         
         <div id="end-screen" class="text-center hidden">
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">Quiz Complete!</h2>
-            <p class="text-xl text-gray-600 mb-2">Your Final Score:</p>
-            <p id="final-score" class="text-5xl font-extrabold text-indigo-600 mb-6"></p>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Quiz Complete!</h2>
+            <p class="text-xl text-gray-600 mb-4">Your Final Score:</p>
+            <p id="final-score" class="text-5xl font-extrabold text-indigo-600 mb-8"></p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-lg text-gray-700 mb-2">Your Best Score</h3>
+                    <p id="best-score" class="text-3xl font-bold text-indigo-500">0</p>
+                </div>
+                 <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-lg text-gray-700 mb-2">Your Recent Scores</h3>
+                    <ul id="recent-scores" class="text-gray-600 space-y-1">
+                        <li>-</li>
+                    </ul>
+                </div>
+            </div>
+
             <button id="restart-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors duration-300">Play Again</button>
         </div>
     </div>
 
     <script>
-       const questions = [
-            // Original Questions
-            {
-                question: "Je n'ai aucune envie de terminer ma vie dans un...",
-                options: ["Auspice", "Hospisse", "Hospice", "Hauspice"],
-                answer: 2
-            },
-            {
-                question: "Parmi ces verbes à l'infinitif, l'un est mal orthographié. Lequel?",
-                options: ["Mijoter", "Greloter", "Barboter", "Radoter"],
-                answer: 1 
-            },
-            {
-                question: "Laquelle de ces montagnes est appelée « toit du monde » ?",
-                options: ["Kilimandjaro", "Mont Everest", "Mont Blanc", "Les Appalaches"],
-                answer: 1
-            },
-            {
-                question: "A quel(s) auteur(s) associe-t-on le concept de négritude?",
-                options: ["Aimé Césaire", "Léopold Sédar Senghor", "Wole Soyinka", "Eza Boto"],
-                answer: 0 
-            },
-            {
-                question: "Qui est l'auteur de la citation suivante : « un tigre ne proclame pas sa tigritude. II bondit sur sa proie et la dévore »",
-                options: ["Léopold Sédar Senghor", "Wole Soyinka", "Chinua Achebe", "Cheikh Anta Diop"],
-                answer: 1
-            },
-             {
-                question: "Dans le domaine du Web, GAFA signifie:",
-                options: ["Google, Apple, Facebook, Amazon", "Groupement Amazon, Facebook, Apple", "Google Amérique, Facebook Amérique", "Aucune de ses réponses"],
-                answer: 0
-            },
-            // Recent Events
-            {
-                question: "Quel pays a remporté la Coupe d'Afrique des Nations (CAN) de football en 2024?",
-                options: ["Nigeria", "Côte d'Ivoire", "Sénégal", "Afrique du Sud"],
-                answer: 1
-            },
-            {
-                question: "Qui a été élu président du Sénégal lors de l'élection de mars 2024?",
-                options: ["Macky Sall", "Amadou Ba", "Bassirou Diomaye Faye", "Ousmane Sonko"],
-                answer: 2
-            },
-            {
-                question: "En 2023, un coup d'État militaire a eu lieu dans quel pays du Sahel?",
-                options: ["Mali", "Burkina Faso", "Tchad", "Niger"],
-                answer: 3
-            },
-            {
-                question: "Lequel de ces pays africains a officiellement rejoint le groupe des BRICS en janvier 2024?",
-                options: ["Nigeria", "Kenya", "Éthiopie", "Ghana"],
-                answer: 2
-            },
-            // New Questions from Document & General Knowledge
-            {
-                question: "A quel pays associe-t-on le mot lusophone ?",
-                options: ["Portugal", "Espagne", "Lusophonia", "Brésil"],
-                answer: 0
-            },
-            {
-                question: "Dans le droit OHADA, GIE signifie:",
-                options: ["Groupement d'Intérêt Economique", "Groupe d'Initiative Economique", "Groupement d'Intérêt Etatique", "Gestion Intégrée des Entreprises"],
-                answer: 0
-            },
-            {
-                question: "Qui est l'auteur du livre 'Une si longue lettre'?",
-                options: ["Ahmadou Kourouma", "Mariama Bâ", "Cheikh Hamidou Kane", "Mongo Beti"],
-                answer: 1
-            },
-            {
-                question: "Qui a écrit 'L'Avare'?",
-                options: ["Victor Hugo", "Emile Zola", "Molière", "William Shakespeare"],
-                answer: 2
-            },
-            {
-                question: "Un article coûte 200 000 F CFA. On lui applique une réduction de 20% puis une nouvelle réduction de 20%. Quel est son nouveau prix ?",
-                options: ["120 000 F CFA", "128 000 F CFA", "140 000 F CFA", "160 000 F CFA"],
-                answer: 1 // 200000 * 0.8 * 0.8 = 128000
-            },
-            {
-                question: "Mon âge est égal au tien plus la moitié du mien. Si tu as 22 ans, quel âge ai-je ?",
-                options: ["33 ans", "44 ans", "55 ans", "66 ans"],
-                answer: 1 // x = 22 + x/2  => x/2 = 22 => x = 44
-            },
-            {
-                question: "Quelle ville abrite le siège de la Cour Pénale Internationale (CPI)?",
-                options: ["Genève", "New York", "Bruxelles", "La Haye"],
-                answer: 3
-            },
-            {
+        const allQuestions = [
+            // This is the full bank of questions
+            { question: "Je n'ai aucune envie de terminer ma vie dans un...", options: ["Auspice", "Hospisse", "Hospice", "Hauspice"], answer: 2 },
+            { question: "Parmi ces verbes à l'infinitif, l'un est mal orthographié. Lequel?", options: ["Mijoter", "Greloter", "Barboter", "Radoter"], answer: 1 },
+            { question: "Laquelle de ces montagnes est appelée « toit du monde » ?", options: ["Kilimandjaro", "Mont Everest", "Mont Blanc", "Les Appalaches"], answer: 1 },
+            { question: "A quel(s) auteur(s) associe-t-on le concept de négritude?", options: ["Aimé Césaire", "Léopold Sédar Senghor", "Wole Soyinka", "Eza Boto"], answer: 0 },
+            { question: "Qui est l'auteur de la citation suivante : « un tigre ne proclame pas sa tigritude. II bondit sur sa proie et la dévore »", options: ["Léopold Sédar Senghor", "Wole Soyinka", "Chinua Achebe", "Cheikh Anta Diop"], answer: 1 },
+            { question: "Dans le domaine du Web, GAFA signifie:", options: ["Google, Apple, Facebook, Amazon", "Groupement Amazon, Facebook, Apple", "Google Amérique, Facebook Amérique", "Aucune de ses réponses"], answer: 0 },
+            { question: "Quel pays a remporté la Coupe d'Afrique des Nations (CAN) de football en 2024?", options: ["Nigeria", "Côte d'Ivoire", "Sénégal", "Afrique du Sud"], answer: 1 },
+            { question: "Qui a été élu président du Sénégal lors de l'élection de mars 2024?", options: ["Macky Sall", "Amadou Ba", "Bassirou Diomaye Faye", "Ousmane Sonko"], answer: 2 },
+            { question: "En 2023, un coup d'État militaire a eu lieu dans quel pays du Sahel?", options: ["Mali", "Burkina Faso", "Tchad", "Niger"], answer: 3 },
+            { question: "Lequel de ces pays africains a officiellement rejoint le groupe des BRICS en janvier 2024?", options: ["Nigeria", "Kenya", "Éthiopie", "Ghana"], answer: 2 },
+            { question: "A quel pays associe-t-on le mot lusophone ?", options: ["Portugal", "Espagne", "Lusophonia", "Brésil"], answer: 0 },
+            { question: "Dans le droit OHADA, GIE signifie:", options: ["Groupement d'Intérêt Economique", "Groupe d'Initiative Economique", "Groupement d'Intérêt Etatique", "Gestion Intégrée des Entreprises"], answer: 0 },
+            { question: "Qui est l'auteur du livre 'Une si longue lettre'?", options: ["Ahmadou Kourouma", "Mariama Bâ", "Cheikh Hamidou Kane", "Mongo Beti"], answer: 1 },
+            { question: "Qui a écrit 'L'Avare'?", options: ["Victor Hugo", "Emile Zola", "Molière", "William Shakespeare"], answer: 2 },
+            { question: "Un article coûte 200 000 F CFA. On lui applique une réduction de 20% puis une nouvelle réduction de 20%. Quel est son nouveau prix ?", options: ["120 000 F CFA", "128 000 F CFA", "140 000 F CFA", "160 000 F CFA"], answer: 1 },
+            { question: "Mon âge est égal au tien plus la moitié du mien. Si tu as 22 ans, quel âge ai-je ?", options: ["33 ans", "44 ans", "55 ans", "66 ans"], answer: 1 },
+            { question: "Quelle ville abrite le siège de la Cour Pénale Internationale (CPI)?", options: ["Genève", "New York", "Bruxelles", "La Haye"], answer: 3 },
+            { question: "Quel est l'anagramme de 6 lettres du mot « sieste » ?", options: ["Tisse", "Steise", "Essite", "Existe"], answer: 3 },
+            { question: "Complétez la suite logique : 12, 24, 72, 288, ...", options: ["576", "1152", "1440", "1728"], answer: 2 },
+            { question: "Complétez la suite logique : 9, 7, 10, 8, 11, ...", options: ["9", "12", "13", "6"], answer: 0 },
+            { question: "Quel pays africain est le plus grand producteur de cacao au monde?", options: ["Ghana", "Nigeria", "Cameroun", "Côte d'Ivoire"], answer: 3 },
+            { question: "La Grande Muraille Verte est une initiative africaine visant à lutter contre quoi?", options: ["L'élévation du niveau de la mer", "La déforestation", "La désertification", "La pollution plastique"], answer: 2 },
+            { question: "Quel fleuve est le plus long d'Afrique de l'Ouest?", options: ["Le fleuve Sénégal", "Le fleuve Niger", "Le fleuve Gambie", "La Volta"], answer: 1 },
+            { question: "Laquelle de ces organisations est une union économique et monétaire en Afrique de l'Ouest?", options: ["CEDEAO", "UEMOA", "CEMAC", "SADC"], answer: 1 },
+            { question: "Quel célèbre musicien sénégalais est connu comme le 'Roi du Mbalax'?", options: ["Ismaël Lô", "Baaba Maal", "Orchestra Baobab", "Youssou N'Dour"], answer: 3 },
+            { question: "Qui a écrit 'Le bossu de Notre Dame'?", options: ["Victor Hugo", "Emile Zola", "Jean-Jacques Rousseau", "Molière"], answer: 0 },
+            { question: "Qui a écrit 'Germinal'?", options: ["Victor Hugo", "Emile Zola", "Jean-Jacques Rousseau", "Molière"], answer: 1 },
+            { question: "Le dioxyde de carbone est-il un gaz à effet de serre?", options: ["Vrai", "Faux"], answer: 0 },
+            { question: "Comment appelle-t-on un habitant de Madagascar?", options: ["Madagascarien", "Malgache", "Malgasque", "Madagasse"], answer: 1 },
+            { question: "Quel est le nombre N qui, majoré de 24, devient 5 fois plus grand qu'il ne l'était?", options: ["4", "5", "6", "8"], answer: 2 },
+                { "question": "Quel accord vise à unifier le marché africain avec 90% de libéralisation tarifaire ?", "options": ["CEDEAO", "AfCFTA", "Tripartite FTA", "SADC"], "answer": 1 },
+    { "question": "Combien de pays commerçaient effectivement sous l'AfCFTA en 2024 ?", "options": ["49", "24", "10", "35"], "answer": 1 },
+    { "question": "De combien les échanges intra-africains ont-ils augmenté en 2024 ?", "options": ["5%", "12,4%", "20%", "25%"], "answer": 1 },
+    { "question": "Quel système permet les paiements en monnaie locale entre pays africains ?", "options": ["SWIFT Africa", "PAPSS", "EcoPay", "AfriPay"], "answer": 1 },
+    { "question": "Quel pays a levé 644 millions USD en obligations en juillet 2025 ?", "options": ["Sénégal", "Ghana", "Côte d'Ivoire", "Mali"], "answer": 0 },
+    { "question": "Quel taux de croissance est prévu pour l'Afrique en 2025 ?", "options": ["3,3%", "3,9%", "4,5%", "5,2%"], "answer": 1 },
+    { "question": "Quel pays avait une dette proche de 120% du PIB avant révision en 2025 ?", "options": ["Ghana", "Sénégal", "Zambie", "Zimbabwe"], "answer": 1 },
+    { "question": "Quel pays vise 6% de croissance en 2025 grâce à l’industrialisation ?", "options": ["Nigeria", "Côte d’Ivoire", "Ghana", "Sénégal"], "answer": 1 },
+    { "question": "Quel pays a reçu 1,5 Md USD de la Banque mondiale en 2025 ?", "options": ["Zimbabwe", "Botswana", "Afrique du Sud", "Zambie"], "answer": 2 },
+    { "question": "Quel pays a eu 6,3% de croissance en 2024, porté par l’or et le café ?", "options": ["Kenya", "Ouganda", "Éthiopie", "Rwanda"], "answer": 1 },
+    { "question": "Quel pays d’Afrique centrale a connu 6,5% de croissance en 2024 ?", "options": ["Ghana", "RD Congo", "Angola", "Cameroun"], "answer": 1 },
+    { "question": "Quel pays africain est entré dans les BRICS en 2024 ?", "options": ["Éthiopie", "Kenya", "Afrique du Sud", "Égypte"], "answer": 0 },
+    { "question": "Quel phénomène motive la création de monnaies africaines alternatives ?", "options": ["Déficit US", "Perte de confiance dans le dollar", "Bitcoin", "Euro fort"], "answer": 1 },
+    { "question": "Quel économiste a alerté sur les effets d'une guerre tarifaire mondiale ?", "options": ["A. Bailey", "J. Powell", "K. Rogoff", "J. Stiglitz"], "answer": 0 },
+    { "question": "Quel pays a construit une raffinerie d’or pour capter plus de valeur ajoutée ?", "options": ["Mali", "Burkina Faso", "Ghana", "Niger"], "answer": 1 }
+  {
     "question": "Parmi ces pays, lequel a officiellement mis fin à la présence militaire permanente française en juillet 2025 ?",
     "options": ["Mali", "Burkina Faso", "Sénégal", "Côte d'Ivoire"],
     "answer": 2
@@ -290,200 +284,297 @@
     "options": ["Athlétisme", "Football", "Rugby", "Basket-ball"],
     "answer": 1
   },
-            {
-                question: "Quel est l'anagramme de 6 lettres du mot « sieste » ?",
-                options: ["Tisse", "Steise", "Essite", "Existe"],
-                answer: 3
-            },
-            {
-                question: "Complétez la suite logique : 12, 24, 72, 288, ...",
-                options: ["576", "1152", "1440", "1728"],
-                answer: 2 // x2, x3, x4, x5
-            },
-            {
-                question: "Complétez la suite logique : 9, 7, 10, 8, 11, ...",
-                options: ["9", "12", "13", "6"],
-                answer: 0 // -2, +3, -2, +3, -2
-            },
-            {
-                question: "Quel pays africain est le plus grand producteur de cacao au monde?",
-                options: ["Ghana", "Nigeria", "Cameroun", "Côte d'Ivoire"],
-                answer: 3
-            },
-            {
-                question: "La Grande Muraille Verte est une initiative africaine visant à lutter contre quoi?",
-                options: ["L'élévation du niveau de la mer", "La déforestation", "La désertification", "La pollution plastique"],
-                answer: 2
-            },
-            {
-                question: "Quel fleuve est le plus long d'Afrique de l'Ouest?",
-                options: ["Le fleuve Sénégal", "Le fleuve Niger", "Le fleuve Gambie", "La Volta"],
-                answer: 1
-            },
-            {
-                question: "Laquelle de ces organisations est une union économique et monétaire en Afrique de l'Ouest?",
-                options: ["CEDEAO", "UEMOA", "CEMAC", "SADC"],
-                answer: 1
-            },
-            {
-                question: "Quel célèbre musicien sénégalais est connu comme le 'Roi du Mbalax'?",
-                options: ["Ismaël Lô", "Baaba Maal", "Orchestra Baobab", "Youssou N'Dour"],
-                answer: 3
-            }
+  {
+    "question": "Quel pays africain a annoncé son intention de reconnaître l’indépendance du Somaliland en janvier 2024 ?",
+    "options": ["Somaliland", "Éthiopie", "Djibouti", "Soudan"],
+    "answer": 1
+  },
+  {
+    "question": "Quel pays a connu un défaut sur sa dette souveraine malgré une inflation de 28 % en 2023 ?",
+    "options": ["Nigeria", "Ghana", "Éthiopie", "Égypte"],
+    "answer": 2
+  },
+  {
+    "question": "Quel groupe terroriste al‑Qaida applique désormais un contrôle territorial et des taxes dans le Sahel ?",
+    "options": ["AQAP", "AQIM", "ISMIS‑W", "JNIM"],
+    "answer": 3
+  },
+  {
+    "question": "Quel pays a officiellement annoncé en 2024 l'ouverture à l’utilisation du Port de Berbera ?",
+    "options": ["Djibouti", "Éthiopie", "Somaliland", "Kenya"],
+    "answer": 1
+  },
+  {
+    "question": "Quel accord de l’UA sur la cybersécurité est souvent considéré encore peu appliqué en 2023 ?",
+    "options": ["AUDPC", "ACFTA", "PACPS", "AU Cyber Charter"],
+    "answer": 0
+  },
+  {
+    "question": "Quel événement traditionnel de physique fondamentale a eu lieu au Maroc en 2024 ?",
+    "options": ["ASP2024", "STEM Maghreb", "Physics Innov Africa", "AfricAIED"],
+    "answer": 0
+  },
+  {
+    "question": "Quel pays africain a rejoint le groupe BRICS en même temps que l’Égypte ?",
+    "options": ["Kenya", "Tunisie", "Éthiopie", "Algérie"],
+    "answer": 2
+  },
+  {
+    "question": "Quel mouvement musical et sportif a été organisé par Masai Ujiri en 2025 ?",
+    "options": ["Youth Sports Summit", "Giants of Africa Festival", "African Youth Congress", "Hoops for Hope"],
+    "answer": 1
+  },
+  {
+    "question": "Quel type de réforme économique a été mise en avant au Nigeria début 2023 par Tinubu ?",
+    "options": ["Suppression des subventions pétrolières", "Nationalisation du pétrole", "Nouvelle monnaie", "Fiscalité agricole"],
+    "answer": 0
+  },
+  {
+    "question": "Combien de pays africains applicables au commerce ont activement utilisé AfCFTA en 2024 ?",
+    "options": ["49", "24", "10", "35"],
+    "answer": 1
+  },
+  {
+    "question": "Quel groupement régional de défense forment désormais Mali, Niger et Burkina Faso après leur départ de la CEDEAO ?",
+    "options": ["CESA", "AES", "SAHEL‑Bloc", "FAS"],
+
         ];
-     // --- DOM Elements ---
-const gameContainer = document.getElementById('game-container');
-const questionText = document.getElementById('question-text');
-const optionsContainer = document.getElementById('options-container');
-const nextBtn = document.getElementById('next-btn');
-const scoreText = document.getElementById('score-text');
-const progressText = document.getElementById('progress-text');
-const progressBar = document.getElementById('progress-bar');
-const endScreen = document.getElementById('end-screen');
-const finalScore = document.getElementById('final-score');
-const restartBtn = document.getElementById('restart-btn');
-const questionArea = document.getElementById('question-area');
 
-// --- Game State ---
-let currentQuestionIndex = 0;
-let score = 0;
-let answered = false;
-let shuffledQuestions = [];
+        const QUIZ_LENGTH = 25;
 
-// --- Sound Effects ---
-const correctSound = new Tone.Synth({
-    oscillator: { type: 'triangle' },
-    envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 }
-}).toDestination();
+        // --- DOM Elements ---
+        const loginScreen = document.getElementById('login-screen');
+        const gameContainer = document.getElementById('game-container');
+        const usernameInput = document.getElementById('username-input');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const welcomeUser = document.getElementById('welcome-user');
+        const leaderboardList = document.getElementById('leaderboard-list');
+        
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const nextBtn = document.getElementById('next-btn');
+        const scoreText = document.getElementById('score-text');
+        const progressText = document.getElementById('progress-text');
+        const progressBar = document.getElementById('progress-bar');
+        
+        const endScreen = document.getElementById('end-screen');
+        const finalScore = document.getElementById('final-score');
+        const bestScoreEl = document.getElementById('best-score');
+        const recentScoresEl = document.getElementById('recent-scores');
+        const restartBtn = document.getElementById('restart-btn');
+        const questionArea = document.getElementById('question-area');
 
-const incorrectSound = new Tone.Synth({
-    oscillator: { type: 'sawtooth' },
-    envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 }
-}).toDestination();
+        // --- Game State ---
+        let currentUsername = '';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = false;
+        let quizQuestions = [];
 
-// --- Utility Functions ---
-function shuffleArray(array) {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-}
+        // --- Sound Effects ---
+        const correctSound = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination();
+        const incorrectSound = new Tone.Synth({ oscillator: { type: 'sawtooth' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination();
 
-// --- Game Functions ---
-function startGame() {
-    // Shuffle questions using Fisher-Yates algorithm for better randomization
-    shuffledQuestions = shuffleArray(questions);
-    currentQuestionIndex = 0;
-    score = 0;
-    answered = false;
-    endScreen.classList.add('hidden');
-    questionArea.classList.remove('hidden');
-    optionsContainer.classList.remove('hidden');
-    nextBtn.classList.add('hidden');
-    updateScore();
-    loadQuestion();
-}
+        // --- Local Storage Functions ---
+        function getAllScores() {
+            const data = localStorage.getItem('memoGameAllScores');
+            return data ? JSON.parse(data) : {};
+        }
 
-function loadQuestion() {
-    answered = false;
-    const currentQuestion = shuffledQuestions[currentQuestionIndex];
-    questionText.textContent = currentQuestion.question;
-    optionsContainer.innerHTML = '';
+        function saveAllScores(scores) {
+            localStorage.setItem('memoGameAllScores', JSON.stringify(scores));
+        }
 
-    // Shuffle the options while keeping track of the correct answer
-    const shuffledOptions = shuffleArray(currentQuestion.options.map((option, index) => ({
-        text: option,
-        originalIndex: index
-    })));
-    
-    // Find the new index of the correct answer after shuffling
-    const newCorrectIndex = shuffledOptions.findIndex(option => 
-        option.originalIndex === currentQuestion.answer
-    );
-    
-    // Update the correct answer index for this shuffled question
-    shuffledQuestions[currentQuestionIndex].shuffledAnswer = newCorrectIndex;
+        function saveUserScore(username, newScore) {
+            let allScores = getAllScores();
+            let userScores = allScores[username] || { best: 0, recent: [] };
 
-    shuffledOptions.forEach((option, index) => {
-        const button = document.createElement('button');
-        button.textContent = option.text;
-        button.classList.add('option-card', 'w-full', 'p-4', 'border', 'border-gray-300', 'rounded-lg', 'text-left', 'bg-white', 'hover:bg-gray-50');
-        button.dataset.index = index;
-        button.addEventListener('click', selectAnswer);
-        optionsContainer.appendChild(button);
-    });
+            if (newScore > userScores.best) {
+                userScores.best = newScore;
+            }
+            userScores.recent.unshift(newScore);
+            userScores.recent = userScores.recent.slice(0, 3);
+            
+            allScores[username] = userScores;
+            saveAllScores(allScores);
+        }
 
-    updateProgress();
-    nextBtn.classList.add('hidden');
-}
+        function getLeaderboard() {
+            const allScores = getAllScores();
+            return Object.entries(allScores)
+                .map(([name, data]) => ({ name, bestScore: data.best }))
+                .sort((a, b) => b.bestScore - a.bestScore)
+                .slice(0, 10);
+        }
 
-function selectAnswer(e) {
-    if (answered) return;
-    answered = true;
-    
-    // Start audio context on user interaction
-    Tone.start();
+        function displayLeaderboard() {
+            const leaderboardData = getLeaderboard();
+            leaderboardList.innerHTML = '';
+            if (leaderboardData.length === 0) {
+                leaderboardList.innerHTML = '<li class="text-gray-500">No scores yet. Be the first!</li>';
+                return;
+            }
+            leaderboardData.forEach((player, index) => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center bg-gray-50 p-2 rounded-md';
+                li.innerHTML = `
+                    <span class="font-medium text-gray-800">${index + 1}. ${player.name}</span>
+                    <span class="font-bold text-indigo-600">${player.bestScore}</span>
+                `;
+                leaderboardList.appendChild(li);
+            });
+        }
 
-    const selectedOption = e.target;
-    const selectedAnswerIndex = parseInt(selectedOption.dataset.index);
-    const correctAnswerIndex = shuffledQuestions[currentQuestionIndex].shuffledAnswer;
+        // --- Login/Logout Logic ---
+        function handleLogin() {
+            const username = usernameInput.value.trim();
+            if (username) {
+                currentUsername = username;
+                localStorage.setItem('memoGameUser', username);
+                showGame();
+            } else {
+                alert("Please enter a name.");
+            }
+        }
 
-    const options = optionsContainer.children;
+        function handleLogout() {
+            currentUsername = '';
+            localStorage.removeItem('memoGameUser');
+            loginScreen.classList.remove('hidden');
+            gameContainer.classList.add('hidden');
+            endScreen.classList.add('hidden');
+            displayLeaderboard();
+        }
 
-    if (selectedAnswerIndex === correctAnswerIndex) {
-        score++;
-        selectedOption.classList.add('correct');
-        correctSound.triggerAttackRelease('C5', '8n');
-    } else {
-        selectedOption.classList.add('incorrect');
-        options[correctAnswerIndex].classList.add('correct');
-        incorrectSound.triggerAttackRelease('C3', '8n');
-    }
-    
-    // Disable all options
-    for (let option of options) {
-        option.disabled = true;
-    }
+        function showGame() {
+            loginScreen.classList.add('hidden');
+            gameContainer.classList.remove('hidden');
+            welcomeUser.textContent = `Welcome, ${currentUsername}!`;
+            startGame();
+        }
+        
+        // --- Game Logic ---
+        function startGame() {
+            quizQuestions = [...allQuestions].sort(() => 0.5 - Math.random()).slice(0, QUIZ_LENGTH);
+            currentQuestionIndex = 0;
+            score = 0;
+            answered = false;
+            
+            endScreen.classList.add('hidden');
+            questionArea.classList.remove('hidden');
+            optionsContainer.classList.remove('hidden');
+            nextBtn.classList.add('hidden');
+            
+            updateScore();
+            loadQuestion();
+        }
 
-    updateScore();
-    nextBtn.classList.remove('hidden');
-}
+        function loadQuestion() {
+            if (currentQuestionIndex >= quizQuestions.length) {
+                showEndScreen();
+                return;
+            }
+            answered = false;
+            const currentQuestion = quizQuestions[currentQuestionIndex];
+            questionText.textContent = currentQuestion.question;
+            optionsContainer.innerHTML = '';
 
-function updateScore() {
-    scoreText.textContent = `Score: ${score}`;
-}
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('option-card', 'w-full', 'p-4', 'border', 'border-gray-300', 'rounded-lg', 'text-left', 'bg-white', 'hover:bg-gray-50');
+                button.dataset.index = index;
+                button.addEventListener('click', selectAnswer);
+                optionsContainer.appendChild(button);
+            });
 
-function updateProgress() {
-    progressText.textContent = `Question ${currentQuestionIndex + 1} / ${shuffledQuestions.length}`;
-    const progressPercentage = ((currentQuestionIndex + 1) / shuffledQuestions.length) * 100;
-    progressBar.style.width = `${progressPercentage}%`;
-}
+            updateProgress();
+            nextBtn.classList.add('hidden');
+        }
 
-function handleNextQuestion() {
-    currentQuestionIndex++;
-    if (currentQuestionIndex < shuffledQuestions.length) {
-        loadQuestion();
-    } else {
-        showEndScreen();
-    }
-}
+        function selectAnswer(e) {
+            if (answered) return;
+            answered = true;
+            Tone.start();
 
-function showEndScreen() {
-    questionArea.classList.add('hidden');
-    optionsContainer.classList.add('hidden');
-    nextBtn.classList.add('hidden');
-    endScreen.classList.remove('hidden');
-    finalScore.textContent = `${score} / ${shuffledQuestions.length}`;
-}
+            const selectedOption = e.target;
+            const selectedAnswerIndex = parseInt(selectedOption.dataset.index);
+            const correctAnswerIndex = quizQuestions[currentQuestionIndex].answer;
 
-// --- Event Listeners ---
-nextBtn.addEventListener('click', handleNextQuestion);
-restartBtn.addEventListener('click', startGame);
+            if (selectedAnswerIndex === correctAnswerIndex) {
+                score++;
+                selectedOption.classList.add('correct');
+                correctSound.triggerAttackRelease('C5', '8n');
+            } else {
+                selectedOption.classList.add('incorrect');
+                optionsContainer.children[correctAnswerIndex].classList.add('correct');
+                incorrectSound.triggerAttackRelease('C3', '8n');
+            }
+            
+            Array.from(optionsContainer.children).forEach(btn => btn.disabled = true);
+            updateScore();
+            nextBtn.classList.remove('hidden');
+        }
 
-// --- Initialize Game ---
-startGame();
+        function updateScore() {
+            scoreText.textContent = `Score: ${score}`;
+        }
+
+        function updateProgress() {
+            progressText.textContent = `Question ${currentQuestionIndex + 1} / ${quizQuestions.length}`;
+            const progressPercentage = ((currentQuestionIndex + 1) / quizQuestions.length) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+        }
+
+        function handleNextQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+        
+        function showEndScreen() {
+            saveUserScore(currentUsername, score);
+            const allScores = getAllScores();
+            const userScores = allScores[currentUsername];
+
+            questionArea.classList.add('hidden');
+            optionsContainer.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            endScreen.classList.remove('hidden');
+
+            finalScore.textContent = `${score} / ${quizQuestions.length}`;
+            bestScoreEl.textContent = userScores.best;
+            
+            recentScoresEl.innerHTML = '';
+            if (userScores.recent.length > 0) {
+                userScores.recent.forEach(s => {
+                    const li = document.createElement('li');
+                    li.textContent = `${s} / ${quizQuestions.length}`;
+                    recentScoresEl.appendChild(li);
+                });
+            } else {
+                recentScoresEl.innerHTML = '<li>-</li>';
+            }
+        }
+
+        // --- Event Listeners ---
+        loginBtn.addEventListener('click', handleLogin);
+        logoutBtn.addEventListener('click', handleLogout);
+        nextBtn.addEventListener('click', handleNextQuestion);
+        restartBtn.addEventListener('click', startGame);
+
+        // --- Initial Check ---
+        function initializeApp() {
+            const savedUser = localStorage.getItem('memoGameUser');
+            if (savedUser) {
+                currentUsername = savedUser;
+                showGame();
+            } else {
+                displayLeaderboard();
+            }
+        }
+        
+        initializeApp();
     </script>
 </body>
 </html>
